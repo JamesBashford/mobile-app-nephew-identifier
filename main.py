@@ -9,6 +9,7 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
                     level=logging.INFO)
 
 logger = logging.getLogger(__name__)
+TOKEN = '5105937010:AAGq0X4gqd6n_wMjzf8SMUPd-TaMSQcbdbw'
 
 
 def start(update, context):
@@ -54,7 +55,8 @@ def detect_mask(update, context):
 
 def main():
     load_model()
-    updater = Updater(token="yourtoken", use_context=True)
+    updater = Updater(token="5105937010:AAGq0X4gqd6n_wMjzf8SMUPd-TaMSQcbdbw
+", use_context=True)
     dp = updater.dispatcher
     dp.add_handler(CommandHandler("start", start))
     dp.add_handler(CommandHandler("help", help_command))
