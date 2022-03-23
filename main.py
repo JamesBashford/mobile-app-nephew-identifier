@@ -1,8 +1,11 @@
-pip install python-telegram-bot
+"""
+Simple Bot to reply to Telegram messages taken from the python-telegram-bot examples.
+Deployed using heroku.
+Author: liuhh02 https://medium.com/@liuhh02
+"""
 
 import logging
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-from fastai.vision.all import load_learner
 import os
 PORT = int(os.environ.get('PORT', 5000))
 
@@ -13,66 +16,54 @@ logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s
 logger = logging.getLogger(__name__)
 TOKEN = '5105937010:AAGq0X4gqd6n_wMjzf8SMUPd-TaMSQcbdbw'
 
-
+# Define a few command handlers. These usually take the two arguments update and
+# context. Error handlers also receive the raised TelegramError object in error.
 def start(update, context):
-    update.message.reply_text(
-        "Bot by Bashy \n\n "
-        "Just send me a photo of Mikey or Danny and I will tell you which it is 😏"
-    )
+    """Send a message when the command /start is issued."""
+    update.message.reply_text('Hi!')
 
+def help(update, context):
+    """Send a message when the command /help is issued."""
+    update.message.reply_text('Help!')
 
-def help_command(update, context):
-        update.message.reply_text('My only purpose is to tell you if a picture is of Mikey or Danny. Send a photo')
+def echo(update, context):
+    """Echo the user message."""
+    update.message.reply_text(update.message.text)
 
-
-
-# def echo(update, context):
-#     print(update)
-#     print(context)
-#     update.message.reply_text(update.message.text)
-
-
-def load_model():
-    global model
-    model = load_learner('model/Mikey_Danny.pkl')
-    print('Model loaded')
-
-
-def detect_mask(update, context):
-    user = update.message.from_user
-    photo_file = update.message.photo[-1].get_file()
-    photo_file.download('user_photo.jpg')
-    logger.info("Photo of %s: %s", user.first_name, 'user_photo.jpg')
-
-    label = model.predict('user_photo.jpg')[0]
-    if label == "mikey":
-        update.message.reply_text(
-            "Oh yeah....that's a Marvellous Mikey alright!😉"
-        )
-    else:
-        update.message.reply_text(
-            "Clearly a Daniel Monster"
-        )
-
+def error(update, context):
+    """Log Errors caused by Updates."""
+    logger.warning('Update "%s" caused error "%s"', update, context.error)
 
 def main():
-    load_model()
+    """Start the bot."""
+    # Create the Updater and pass it your bot's token.
+    # Make sure to set use_context=True to use the new context based callbacks
+    # Post version 12 this will no longer be necessary
     updater = Updater(TOKEN, use_context=True)
+
+    # Get the dispatcher to register handlers
     dp = updater.dispatcher
+
+    # on different commands - answer in Telegram
     dp.add_handler(CommandHandler("start", start))
-    dp.add_handler(CommandHandler("help", help_command))
+    dp.add_handler(CommandHandler("help", help))
 
-    dp.add_handler(MessageHandler(Filters.photo, detect_mask))
+    # on noncommand i.e message - echo the message on Telegram
+    dp.add_handler(MessageHandler(Filters.text, echo))
 
+    # log all errors
     dp.add_error_handler(error)
-    
+
+    # Start the Bot
     updater.start_webhook(listen="0.0.0.0",
                           port=int(PORT),
                           url_path=TOKEN)
     updater.bot.setWebhook('https://mikey-danny-identifier.herokuapp.com/' + TOKEN)
-    
-    updater.idle()
 
+    # Run the bot until you press Ctrl-C or the process receives SIGINT,
+    # SIGTERM or SIGABRT. This should be used most of the time, since
+    # start_polling() is non-blocking and will stop the bot gracefully.
+    updater.idle()
 
 if __name__ == '__main__':
     main()
